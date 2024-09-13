@@ -30,7 +30,7 @@
  *		struct sockaddr_in server;
  *		int err = make_server_sockaddr(&server, 8888);
  */
-int make_server_sockaddr(struct sockaddr_in *addr, int port) {
+int make_server_sockaddr(struct sockaddr_in *addr, uint16_t port) {
 	// Step (1): specify socket family.
 	// This is an internet socket.
 	addr->sin_family = AF_INET;
@@ -60,7 +60,7 @@ int make_server_sockaddr(struct sockaddr_in *addr, int port) {
  *		struct sockaddr_in client;
  *		int err = make_client_sockaddr(&client, "141.88.27.42", 8888);
  */
-int make_client_sockaddr(struct sockaddr_in *addr, const char *hostname, int port) {
+int make_client_sockaddr(struct sockaddr_in *addr, const char *hostname, uint16_t port) {
 	// Step (1): specify socket family.
 	// This is an internet socket.
 	addr->sin_family = AF_INET;

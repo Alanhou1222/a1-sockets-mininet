@@ -1,3 +1,5 @@
+#include "functions.h"
+
 #include <stdio.h>		// printf()
 #include <stdlib.h>		// atoi()
 #include <string.h>		// strlen()

@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -g -std=c++11 -pedantic
+CXXFLAGS = -g -std=c++14 -pedantic
 
 server: server.cpp
 	$(CXX) $(CXXFLAGS) server.cpp -o server
@@ -7,7 +7,10 @@ server: server.cpp
 client: client.cpp
 	$(CXX) $(CXXFLAGS) client.cpp -o client
 
+iPerfer: iPerfer.cpp
+	$(CXX) $(CXXFLAGS) functions.cpp iPerfer.cpp -o iPerfer
+
 clean:
-	rm client server
+	rm client server iPerfer
 
 .PHONY: clean
