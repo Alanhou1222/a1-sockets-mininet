@@ -3,9 +3,9 @@
 
 //server functions
 int handle_connection(int connectionfd);
-int run_server(int port, int queue_size);
+int run_server(int port);
 
 //client functions
-int send_message(const char *hostname, int port, const char *message);
+int send_message(const char *hostname, int port, int t);
 
 #endif

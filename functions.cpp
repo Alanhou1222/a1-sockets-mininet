@@ -5,14 +5,14 @@
 #include <stdlib.h>		// atoi()
 #include <sys/socket.h>	// socket(), bind(), listen(), accept(), connect()
 #include <unistd.h>		// close()
+#include <chrono>
+
+using namespace std::chrono;
 
 #include "helpers.h"	// make_server_sockaddr()
 
-static const int MAX_MESSAGE_SIZE = 256;
+static const int MAX_MESSAGE_SIZE = 1000;
 
-static const char * RESPONSE_OK = "200";
-
-static const char * RESPONSE_ERROR = "400";
 /* Server */
 /**
  * Receives a string message from the client, prints it to stdout, then
@@ -28,31 +28,33 @@ int handle_connection(int connectionfd) {
 	// TODO: Implement this function
 	char buffer[MAX_MESSAGE_SIZE] = {};
 	// (1) Receive message from client.
-	int loc = 0;
+	uint64_t totalByte = 0;
 	bool response_ok = true;
+	
+	auto start = high_resolution_clock::now();
 	while(true){
-			int received = recv(connectionfd, buffer + loc, MAX_MESSAGE_SIZE, 0);
-			printf("Got %d bytes\n", received);
-			loc += received;
-			if(loc > MAX_MESSAGE_SIZE){
-					response_ok = false;
-					break;
-			}
-			if(received == 0){
-					break;
-			}
+		int received = recv(connectionfd, buffer, MAX_MESSAGE_SIZE, 0);
+		totalByte += received;
+		if (strncmp(buffer, "FIN", strlen("FIN")) == 0) {
+			break;
+		}
 	}
-	// (2) Print out the message
-	if(response_ok){
-			printf("%s\n", buffer);
+
+	send(connectionfd, "ACK", strlen("ACK"), 0);
+
+	while (true)
+	{
+		int received = recv(connectionfd, buffer, MAX_MESSAGE_SIZE, 0);
+		if(received == 0) break;
 	}
-	// (3) Send response code to client
-	if(send(connectionfd, response_ok? RESPONSE_OK : RESPONSE_ERROR, strlen(RESPONSE_OK), 0) == -1){
-		return -1;
-	}
-	else{
-		printf("Sent response code %s\n", RESPONSE_OK);
-	}
+
+	auto end = high_resolution_clock::now();
+	
+	int recivedKB = totalByte / 1000;
+	double timeSpent = std::chrono::duration<double>(end - start).count();
+	double rate = recivedKB / 125 / timeSpent;
+	printf("Received=%d KB, Rate=%.3f Mbps\n", recivedKB, rate);
+
 	// (4) Close connection
 	close(connectionfd);
 	return 0;
@@ -64,19 +66,18 @@ int handle_connection(int connectionfd) {
  *
  * Parameters:
  *		port: The port on which to listen for incoming connections.
- *		queue_size: Size of the listen() queue
  * Returns:
  *		-1 on failure, does not return on success.
  */
-int run_server(int port, int queue_size) {
+int run_server(int port) {
 	// TODO: Implement the rest of this function
 
 	// (1) Create socket
 	int sock = socket(AF_INET, SOCK_STREAM, 0);
 	struct sockaddr_in addr;
 	addr.sin_family = AF_INET;
-  addr.sin_addr.s_addr = htonl(INADDR_ANY);
-  addr.sin_port = htons(port);
+  	addr.sin_addr.s_addr = htonl(INADDR_ANY);
+ 	addr.sin_port = htons(port);
 	// (2) Set the "reuse port" socket option
 	int yes = 1;
 	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
@@ -86,15 +87,10 @@ int run_server(int port, int queue_size) {
 		return -1;
 	}
 	// (4) Begin listening for incoming connections.
-	listen(sock, queue_size);
-	printf("Listening...\n");
-	// (5) Serve incoming connections one by one forever.
-	while (true) {
-			int connectionfd = accept(sock, 0 , 0);
-			printf("Request accepted...\n");
-			handle_connection(connectionfd);
-			printf("Request finished...\n");
-	}
+	listen(sock, 1);
+
+	int connectionfd = accept(sock, 0 , 0);
+	return handle_connection(connectionfd);
 }
 
 /* Client */
@@ -108,22 +104,15 @@ int run_server(int port, int queue_size) {
  * Returns:
  *		The server's response code on success, -1 on failure.
  */
-int send_message(const char *hostname, int port, const char *message) {
-	if (strlen(message) > MAX_MESSAGE_SIZE) {
-		printf("Error: Message exceeds maximum length\n");
-		return -1;
-	}
-
-	// TODO: Implement the rest of this function
-
+int send_message(const char *hostname, int port, int t) {
 	// (1) Create a socket
 	int sock = socket(AF_INET, SOCK_STREAM, 0);
 	// (2) Create a sockaddr_in to specify remote host and port
 	struct sockaddr_in addr;
 	addr.sin_family = AF_INET;
-  addr.sin_port = htons(port);
+  	addr.sin_port = htons(port);
 	struct hostent *hp;
-	hp = gethostbyname(hostname );
+	hp = gethostbyname(hostname);
 	/*
 	 * gethostbyname returns a structure including the network address
 	 * of the specified host.
@@ -143,37 +132,41 @@ int send_message(const char *hostname, int port, const char *message) {
 		exit(1);
 	}
 	// (4) Send message to remote server
-	if(send(sock, message, strlen(message), 0) == -1){
-		return -1;
+
+	char buffer[MAX_MESSAGE_SIZE] = {};
+	uint64_t totalByte = 0;
+	auto start = high_resolution_clock::now();
+
+	while(std::chrono::duration<double>(high_resolution_clock::now() - start).count() < t){
+		send(sock, buffer, MAX_MESSAGE_SIZE, 0);
+		totalByte += MAX_MESSAGE_SIZE;
 	}
-	printf("Message sent\n");
+
+	send(sock, "FIN", strlen("FIN"), 0);
 	shutdown(sock, SHUT_WR);
-	// (5) Wait for integer response
+
+	// (5) Wait for response
+	int loc = 0;
+
 	while(true){
-		int loc = 0;
-		char buffer[MAX_MESSAGE_SIZE] = {};
-		while(true){
-				int received = recv(sock, buffer + loc, MAX_MESSAGE_SIZE, 0);
-				if(received == -1){
-						printf("Something went wrong with receiving...\n");
-						return -1;
-				}
-				printf("Got %d bytes\n", received);
-				loc += received;
-				if(received == 0){
-						break;
-				}
+		int received = recv(sock, buffer + loc, MAX_MESSAGE_SIZE, 0);
+		if(received == -1){
+				printf("Something went wrong with receiving...\n");
+				return -1;
 		}
-		int response = atoi(buffer);
-		if(!response){
-			return -1;
-		}
-		else{
-			printf("Response: %d\n", response);
+
+		loc += received;
+		if (strncmp(buffer, "ACK", strlen("ACK")) == 0) {
 			break;
 		}
 	}
-	printf("Request finished...\n");
+
+	auto end = high_resolution_clock::now();
+	int sentKB = totalByte / 1000;
+	double timeSpent = std::chrono::duration<double>(end - start).count();
+	double rate = sentKB / 125 / timeSpent;
+	printf("Sent=%d KB, Rate=%.3f Mbps\n", sentKB, rate);
+
 	// (6) Close connection
 	close(sock);
 	return 0;

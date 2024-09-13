@@ -11,6 +11,6 @@ iPerfer: iPerfer.cpp
 	$(CXX) $(CXXFLAGS) functions.cpp iPerfer.cpp -o iPerfer
 
 clean:
-	rm client server iPerfer
+	rm client server iPerfer *.o
 
 .PHONY: clean
