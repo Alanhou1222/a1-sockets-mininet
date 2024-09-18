@@ -1,0 +1,23 @@
+2)    Predicted throughput: 20Mbps
+      Predicted latency: 120ms
+      Actual throughput: 19.450Mbps
+      Actual latency: 121.375ms
+      Explanation of results: throughput is the minimum of all links and latency is the sum of all links.
+
+3.1)  Predicted throughput: 10Mbps, 10Mbps
+      Predicted latency: 120ms, 120ms
+      Actual throughput: 10.525Mbps 10.435Mbps
+      Actual latency: 121.051ms, 121.107s
+      Explanation of results: throughput should be 1/2 because two pairs are communicating and lantency shouldn't change because all are on the same links path and requires no switching
+
+3.2)  Predicted throughput: 6.667Mbps, 6.667Mbps, 6.667Mbps
+      Predicted latency: 120ms, 120ms, 120ms
+      Actual throughput: 7.320Mbps, 7.290Mbps, 7.301Mbps
+      Actual latency: 120.709ms, 120.728ms, 120.694ms
+      Explanation of results: throughput should be 1/3 because three pairs are communicating and lantency shouldn't change because all are on the same links path and requires no switching
+
+4)    Predicted throughput: 12.5Mbps
+      Predicted latency:
+      Actual throughput:
+      Actual latency:
+      Explanation of results:

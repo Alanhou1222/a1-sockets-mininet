@@ -1,23 +1,23 @@
-2)    Predicted throughput:
-      Predicted latency:
-      Actual throughput:
-      Actual latency:
-      Explanation of results:
+2)    Predicted throughput: 20Mbps
+      Predicted latency: 120ms
+      Actual throughput: 19.450Mbps
+      Actual latency: 121.375ms
+      Explanation of results: Throughput should be the minimum bandwidth of all links and latency is the sum of all links' delay in the path.
 
-3.1)  Predicted throughput:
-      Predicted latency:
-      Actual throughput:
-      Actual latency:
-      Explanation of results:
+3.1)  Predicted throughput: 10Mbps, 10Mbps
+      Predicted latency: 120ms, 120ms
+      Actual throughput: 10.525Mbps 10.435Mbps
+      Actual latency: 121.051ms, 121.107s
+      Explanation of results: Throughput should be 1/2 of the the minimum bandwidth because two pairs are communicating and they share the bandwidth, while lantency is still the sum of all links's delay in the path because and it's not affect by the amount of pairs communicating.
 
-3.2)  Predicted throughput:
-      Predicted latency:
-      Actual throughput:
-      Actual latency:
-      Explanation of results:
+3.2)  Predicted throughput: 6.667Mbps, 6.667Mbps, 6.667Mbps
+      Predicted latency: 120ms, 120ms, 120ms
+      Actual throughput: 7.320Mbps, 7.290Mbps, 7.301Mbps
+      Actual latency: 120.709ms, 120.728ms, 120.694ms
+      Explanation of results: Throughput should be 1/3 of the the minimum bandwidth because three pairs are communicating and they share the bandwidth, while lantency is still the sum of all links's delay in the path because and it's not affect by the amount of pairs communicating.
 
-4)    Predicted throughput:
-      Predicted latency:
-      Actual throughput:
-      Actual latency:
-      Explanation of results:
+4)    Predicted throughput: 12.5Mbps, 12.5Mbps
+      Predicted latency: 120ms, 30ms
+      Actual throughput: 5.895Mbps, 20.45Mbps
+      Actual latency: 120.863ms, 30.366ms
+      Explanation of results: I assumed that bandwidth is shared equally so both throughput should be 1/2 of the minimum bandwidth. However, it seems like there is no fairness in switches and the shorter path got significantly more throughput. Latency is still the sum of all links' delay in the two paths in this senario.
